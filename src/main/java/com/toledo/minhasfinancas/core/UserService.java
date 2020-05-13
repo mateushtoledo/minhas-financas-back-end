@@ -1,9 +1,13 @@
 package com.toledo.minhasfinancas.core;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.toledo.minhasfinancas.domain.User;
+import com.toledo.minhasfinancas.exception.custom.AuthenticationFailureException;
 import com.toledo.minhasfinancas.exception.custom.BusinessRuleException;
 import com.toledo.minhasfinancas.port.inbound.UserServicePort;
 import com.toledo.minhasfinancas.repository.UserRepository;
@@ -20,12 +24,23 @@ public class UserService implements UserServicePort {
 
 	@Override
 	public User authenticate(String email, String password) {
-		return null;
+		Optional<User> user = repository.findByEmail(email);
+		if (!user.isPresent()) {
+			throw new AuthenticationFailureException("Usuário não encontrado para o e-mail informado.");
+		}
+		
+		User found = user.get();
+		if (!found.getPassword().equals(password)) {
+			throw new AuthenticationFailureException("Senha inválida.");
+		}
+		return found;
 	}
 
 	@Override
+	@Transactional
 	public User register(User toSave) {
-		return null;
+		validateEmail(toSave.getEmail());
+		return repository.save(toSave);
 	}
 
 	@Override
