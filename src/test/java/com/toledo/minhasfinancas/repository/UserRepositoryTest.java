@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -85,10 +86,11 @@ public class UserRepositoryTest {
 	}
 	
 	public static User createUser() {
+		BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 		return User.builder()
 			.name("Roberval Da Silva")
 			.email("roberval@gmail.com")
-			.password("senha")
+			.password(passwordEncoder.encode("p4ssword"))
 			.build();
 	}
 }

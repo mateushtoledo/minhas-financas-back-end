@@ -3,6 +3,7 @@ package com.toledo.minhasfinancas.core;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,11 +16,13 @@ import com.toledo.minhasfinancas.repository.UserRepository;
 @Service
 public class UserService implements UserServicePort {
 	private UserRepository repository;
+	private PasswordEncoder passwordEncoder;
 	
 	@Autowired
-	public UserService(UserRepository repository) {
+	public UserService(UserRepository repository, PasswordEncoder passwordEncoder) {
 		super();
 		this.repository = repository;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	@Override
@@ -30,7 +33,7 @@ public class UserService implements UserServicePort {
 		}
 		
 		User found = user.get();
-		if (!found.getPassword().equals(password)) {
+		if (!passwordEncoder.matches(password, found.getPassword())) {
 			throw new AuthenticationFailureException("Senha inválida.");
 		}
 		return found;
@@ -40,6 +43,7 @@ public class UserService implements UserServicePort {
 	@Transactional
 	public User register(User toSave) {
 		validateEmail(toSave.getEmail());
+		toSave.setPassword(passwordEncoder.encode(toSave.getPassword()));
 		return repository.save(toSave);
 	}
 
