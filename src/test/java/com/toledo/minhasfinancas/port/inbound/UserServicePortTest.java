@@ -1,19 +1,24 @@
 package com.toledo.minhasfinancas.port.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -23,17 +28,50 @@ import com.toledo.minhasfinancas.exception.custom.AuthenticationFailureException
 import com.toledo.minhasfinancas.exception.custom.BusinessRuleException;
 import com.toledo.minhasfinancas.repository.UserRepository;
 
+@SpringBootTest
 @ActiveProfiles("test")
 @ExtendWith(SpringExtension.class)
 public class UserServicePortTest {
-    private UserServicePort service;
+	@SpyBean
+    private UserService service;
     @MockBean
     private UserRepository repository;
-    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
     
-    @BeforeEach
-    public void setUp() {
-    	service = new UserService(repository, passwordEncoder);
+    @Test
+    public void testSaveUser() {
+    	// Scenario
+    	doNothing().when(service).validateEmail(Mockito.anyString());
+    	User user = User.builder()
+			.id(1L)
+			.name("Roberval")
+			.email("email@email.com")
+			.password(passwordEncoder.encode("password"))
+			.build();
+    	Mockito.when(repository.save(Mockito.any(User.class))).thenReturn(user);
+    	
+    	// Action
+    	User saved = service.register(User.builder().password("password").build());
+    	
+    	// Verification
+    	assertThat(saved).isNotNull();
+    	assertThat(saved.getId()).isEqualTo(1L);
+    	assertThat(saved.getName()).isEqualTo("Roberval");
+    	assertThat(saved.getEmail()).isEqualTo("email@email.com");
+    	assertThat(passwordEncoder.matches("password", saved.getPassword())).isTrue();
+    }
+    
+    @Test
+    public void testSaveUserWithInvalidEmail() {
+    	// Scenario
+    	String email = "email@email.com";
+    	User user = User.builder().email(email).build();
+    	doThrow(BusinessRuleException.class).when(service).validateEmail(email);
+    	
+    	// Action
+    	assertThrows(BusinessRuleException.class, () -> service.register(user));
+    	verify(repository, Mockito.never()).save(user);
     }
     
     @Test
@@ -53,20 +91,30 @@ public class UserServicePortTest {
     
     @Test
     public void testAuthenticationAndNotFoundUser() {
+    	// Scenario
     	when(repository.findByEmail(Mockito.anyString())).thenReturn(Optional.empty());
     	
-    	// Action and verification
-    	assertThrows(AuthenticationFailureException.class, () -> service.authenticate("email@email.com", "teste124"));
+    	// Action
+    	Throwable exception = catchThrowable(() -> service.authenticate("email@email.com", "teste124"));
+    	
+    	// Verification
+    	assertThat(exception).isInstanceOf(AuthenticationFailureException.class);
+    	assertThat(exception.getMessage()).isEqualTo("Usuário não encontrado para o e-mail informado.");
     }
     
     @Test
     public void testAuthenticationAndPasswordNotMatch() {
+    	// Scenario
     	String password = "Pwd1234";
     	User user = User.builder().email("email@email.com").password(password).build();
     	when(repository.findByEmail(Mockito.anyString())).thenReturn(Optional.of(user));
     	
-    	// Action and verification
-    	assertThrows(AuthenticationFailureException.class, () -> service.authenticate("email@email.com", "pwd1234"));
+    	// Action
+    	Throwable exception = catchThrowable(() -> service.authenticate("email@email.com", "pwd1234"));
+    	
+    	// Verification
+    	assertThat(exception).isInstanceOf(AuthenticationFailureException.class);
+    	assertThat(exception.getMessage()).isEqualTo("Senha inválida.");
     }
     
     @Test

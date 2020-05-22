@@ -3,7 +3,7 @@ package com.toledo.minhasfinancas.core;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +16,10 @@ import com.toledo.minhasfinancas.repository.UserRepository;
 @Service
 public class UserService implements UserServicePort {
 	private UserRepository repository;
-	private PasswordEncoder passwordEncoder;
+	private BCryptPasswordEncoder passwordEncoder;
 	
 	@Autowired
-	public UserService(UserRepository repository, PasswordEncoder passwordEncoder) {
+	public UserService(UserRepository repository, BCryptPasswordEncoder passwordEncoder) {
 		super();
 		this.repository = repository;
 		this.passwordEncoder = passwordEncoder;
