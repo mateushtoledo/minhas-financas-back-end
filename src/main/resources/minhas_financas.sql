@@ -41,7 +41,7 @@ CREATE TABLE financas.financial_records (
     id bigint NOT NULL,
     description character varying(255),
     month integer NOT NULL,
-    register_date timestamp without time zone,
+    register_date date,
     status character varying(255),
     type character varying(255),
     value real NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE financas.users (
     email character varying(255),
     name character varying(255),
     password character varying(255),
-    register_date timestamp without time zone
+    register_date date
 );
 
 

@@ -8,6 +8,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
@@ -24,7 +26,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.toledo.minhasfinancas.core.UserService;
 import com.toledo.minhasfinancas.domain.User;
+import com.toledo.minhasfinancas.exception.UserNotFoundException;
 import com.toledo.minhasfinancas.exception.custom.AuthenticationFailureException;
+import com.toledo.minhasfinancas.exception.custom.BusinessAuthorizationException;
 import com.toledo.minhasfinancas.exception.custom.BusinessRuleException;
 import com.toledo.minhasfinancas.repository.UserRepository;
 
@@ -38,6 +42,41 @@ public class UserServicePortTest {
     private UserRepository repository;
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+    
+    @Test
+    public void testFindUserById() {
+    	// Scenario
+    	String userEmail = "email@email.com";
+    	User toFind = new User(1L, "mateus", userEmail, "pweovg4igk09f0weu", LocalDate.now(), new ArrayList<>());
+    	when(repository.findById(Mockito.anyLong())).thenReturn(Optional.of(toFind));
+    	
+    	// Action
+    	User found = service.findById(1L, userEmail);
+    	
+    	// Verification
+    	assertThat(found).isNotNull();
+    	assertThat(found.getId()).isNotNull();
+    }
+    
+    @Test
+    public void testFindUserByIdAndNotFound() {
+    	// Scenario
+    	when(repository.findById(Mockito.anyLong())).thenThrow(UserNotFoundException.class);
+    	
+    	// Action and verification
+    	assertThrows(UserNotFoundException.class, () -> service.findById(1L, "email@email.com"));
+    }
+    
+    @Test
+    public void testFindUnauthorizedUserById() {
+    	// Scenario
+    	String userEmail = "email@email.com";
+    	User toFind = new User(1L, "mateus", userEmail, "pweovg4igk09f0weu", LocalDate.now(), new ArrayList<>());
+    	when(repository.findById(Mockito.anyLong())).thenReturn(Optional.of(toFind));
+    	
+    	// Action
+    	assertThrows(BusinessAuthorizationException.class, () -> service.findById(1L, userEmail.concat(".br")));
+    }
     
     @Test
     public void testSaveUser() {

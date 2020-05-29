@@ -8,5 +8,7 @@ public interface UserServicePort {
 	
 	User register(User toSave);
 	
+	User findById(long id, String email);
+	
 	void validateEmail(String email);
 }

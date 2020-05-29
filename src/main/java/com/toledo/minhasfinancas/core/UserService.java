@@ -1,5 +1,6 @@
 package com.toledo.minhasfinancas.core;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.toledo.minhasfinancas.domain.User;
+import com.toledo.minhasfinancas.exception.UserNotFoundException;
 import com.toledo.minhasfinancas.exception.custom.AuthenticationFailureException;
+import com.toledo.minhasfinancas.exception.custom.BusinessAuthorizationException;
 import com.toledo.minhasfinancas.exception.custom.BusinessRuleException;
 import com.toledo.minhasfinancas.port.inbound.UserServicePort;
 import com.toledo.minhasfinancas.repository.UserRepository;
@@ -44,6 +47,7 @@ public class UserService implements UserServicePort {
 	public User register(User toSave) {
 		validateEmail(toSave.getEmail());
 		toSave.setPassword(passwordEncoder.encode(toSave.getPassword()));
+		toSave.setRegisterDate(LocalDate.now());
 		return repository.save(toSave);
 	}
 
@@ -52,5 +56,20 @@ public class UserService implements UserServicePort {
 		if (repository.existsByEmail(email)) {
 			throw new BusinessRuleException("Já existe um usuário cadastrado com este e-mail.");
 		}
+	}
+
+	@Override
+	public User findById(long id, String email) {
+		Optional<User> found = repository.findById(id);
+		
+		if (!found.isPresent()) {
+			throw new UserNotFoundException("Usuário não encontrado!");
+		}
+		
+		User user = found.get();
+		if (user.getEmail().equals(email)) {
+			return user;
+		}
+		throw new BusinessAuthorizationException("Você não pode acessar os dados de outro usuário!");
 	}
 }
