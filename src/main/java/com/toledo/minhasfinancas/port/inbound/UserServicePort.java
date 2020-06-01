@@ -10,5 +10,7 @@ public interface UserServicePort {
 	
 	User findById(long id, String email);
 	
+	User findByEmail(String email);
+	
 	void validateEmail(String email);
 }

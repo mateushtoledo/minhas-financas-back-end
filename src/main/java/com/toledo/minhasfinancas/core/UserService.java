@@ -72,4 +72,10 @@ public class UserService implements UserServicePort {
 		}
 		throw new BusinessAuthorizationException("Você não pode acessar os dados de outro usuário!");
 	}
+
+	@Override
+	public User findByEmail(String email) {
+		Optional<User> found = repository.findByEmail(email);
+		return found.orElseThrow(() -> new UserNotFoundException("Usuário não encontrado. Por favor, verifique o e-mail informado, e tente novamente."));
+	}
 }

@@ -61,7 +61,31 @@ public class UserServicePortTest {
     @Test
     public void testFindUserByIdAndNotFound() {
     	// Scenario
-    	when(repository.findById(Mockito.anyLong())).thenThrow(UserNotFoundException.class);
+    	when(repository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
+    	
+    	// Action and verification
+    	assertThrows(UserNotFoundException.class, () -> service.findById(1L, "email@email.com"));
+    }
+    
+    @Test
+    public void testFindUserByEmail() {
+    	// Scenario
+    	String userEmail = "email@email.com";
+    	User toFind = new User(1L, "mateus", userEmail, "pweovg4igk09f0weu", LocalDate.now(), new ArrayList<>());
+    	when(repository.findByEmail(Mockito.anyString())).thenReturn(Optional.of(toFind));
+    	
+    	// Action
+    	User found = service.findByEmail(userEmail);
+    	
+    	// Verification
+    	assertThat(found).isNotNull();
+    	assertThat(found.getId()).isNotNull();
+    }
+    
+    @Test
+    public void testFindUserByEmailAndNotFound() {
+    	// Scenario
+    	when(repository.findByEmail(Mockito.anyString())).thenReturn(Optional.empty());
     	
     	// Action and verification
     	assertThrows(UserNotFoundException.class, () -> service.findById(1L, "email@email.com"));

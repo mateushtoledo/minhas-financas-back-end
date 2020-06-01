@@ -2,7 +2,6 @@ package com.toledo.minhasfinancas.adapter.inbound;
 
 import java.net.URI;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,18 +17,15 @@ import com.toledo.minhasfinancas.dto.UserDTO;
 import com.toledo.minhasfinancas.port.inbound.UserServicePort;
 import com.toledo.minhasfinancas.security.JwtUtil;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserRestAdapter {
-	private UserServicePort service;
-	private JwtUtil jwtUtils;
 	
-	@Autowired
-	public UserRestAdapter(UserServicePort service, JwtUtil jwtUtils) {
-		super();
-		this.service = service;
-		this.jwtUtils = jwtUtils;
-	}
+	private final UserServicePort service;
+	private final JwtUtil jwtUtils;
 
 	@PostMapping
 	public ResponseEntity<Void> registerUser(@RequestBody UserDTO userData) {
