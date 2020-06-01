@@ -12,7 +12,7 @@ public interface FinancialRecordServicePort {
 	
 	public FinancialRecord update(User u, Long recordId, FinancialRecord recordData);
 	
-	public List<FinancialRecord> find(User u, Integer year, Integer month, FinancialRecordType type);
+	public List<FinancialRecord> find(User u, String description, Integer year, Integer month, FinancialRecordType type);
 	
 	public FinancialRecord updateStatus(User u, Long recordId, FinancialRecordStatus status);
 	

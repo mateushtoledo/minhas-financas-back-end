@@ -4,9 +4,15 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import com.toledo.minhasfinancas.domain.FinancialRecord;
 import com.toledo.minhasfinancas.domain.User;
@@ -18,6 +24,7 @@ import com.toledo.minhasfinancas.port.inbound.FinancialRecordServicePort;
 import com.toledo.minhasfinancas.repository.FinancialRecordRepository;
 
 @Service
+@Validated
 public class FinancialRecordService implements FinancialRecordServicePort {
 	private FinancialRecordRepository repository;
 	
@@ -29,7 +36,7 @@ public class FinancialRecordService implements FinancialRecordServicePort {
 
 	@Override
 	@Transactional
-	public FinancialRecord save(User u, FinancialRecord recordData) {
+	public FinancialRecord save(User u, @Valid FinancialRecord recordData) {
 		recordData.setId(null);
 		recordData.setUser(u);
 		recordData.setStatus(FinancialRecordStatus.PENDANT);
@@ -40,7 +47,7 @@ public class FinancialRecordService implements FinancialRecordServicePort {
 
 	@Override
 	@Transactional
-	public FinancialRecord update(User u, Long recordId, FinancialRecord recordData) {
+	public FinancialRecord update(User u, Long recordId, @Valid FinancialRecord recordData) {
 		// Load and validate financial record
 		Optional<FinancialRecord> found = repository.findById(recordId);
 		FinancialRecord record = validateFinancialRecord(found, u, "alterar");
@@ -57,9 +64,16 @@ public class FinancialRecordService implements FinancialRecordServicePort {
 	}
 
 	@Override
-	public List<FinancialRecord> find(User u, Integer year, Integer month, FinancialRecordType type) {
-		// TODO Auto-generated method stub
-		return null;
+	@Transactional(readOnly = true)
+	public List<FinancialRecord> find(User u, String description, Integer year, Integer month, FinancialRecordType type) {
+		FinancialRecord filters = new FinancialRecord(null, description, month, year, null, type, null, u, null);
+		Example<FinancialRecord> ex = Example.of(filters,
+			ExampleMatcher.matching()
+			.withIgnoreCase()
+			.withStringMatcher(StringMatcher.CONTAINING)
+		);
+		
+		return repository.findAll(ex);
 	}
 
 	@Override

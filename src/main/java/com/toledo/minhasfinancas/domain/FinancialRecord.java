@@ -15,6 +15,11 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
@@ -41,11 +46,23 @@ public class FinancialRecord implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
+	@NotNull(message = "A descrição do registro financeiro é obrigatória, e foi omitida!")
+	@NotEmpty(message = "A descrição do registro financeiro está vazia!")
 	private String description;
-	private int month;
-	private int year;
-	private float value;
 	
+	@NotNull(message = "O mês de refereência do registro financeiro é obrigatório, e foi omitido!")
+	@Size(min = 1, max = 12, message = "O mês de referência do registro financeiro aceita somente valores de 1 a 12!")
+	private Integer month;
+	
+	@NotNull(message = "O ano de refereência do registro financeiro é obrigatório, e foi omitido!")
+	@Size(min = 1000, max = 9999, message = "O ano de referência do registro financeiro é inválido!")
+	private Integer year;
+	
+	@NotNull(message = "O valor do registro financeiro é obrigatório, e foi omitido!")
+	@Min(value = 1, message = "O valor do registro financeiro deve ser superior a zero!")
+	private Float value;
+	
+	@NotNull(message = "O tipo do registro financeiro é obrigatório, e foi omitido!")
 	@Enumerated(EnumType.STRING)
 	private FinancialRecordType type;
 
