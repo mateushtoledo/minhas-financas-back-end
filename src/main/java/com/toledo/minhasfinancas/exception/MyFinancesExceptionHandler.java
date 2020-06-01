@@ -11,6 +11,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import com.toledo.minhasfinancas.exception.custom.BusinessAuthorizationException;
 import com.toledo.minhasfinancas.exception.custom.BusinessRuleException;
+import com.toledo.minhasfinancas.exception.custom.UserNotFoundException;
 
 @ControllerAdvice
 public class MyFinancesExceptionHandler {

@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.toledo.minhasfinancas.domain.User;
-import com.toledo.minhasfinancas.exception.UserNotFoundException;
 import com.toledo.minhasfinancas.exception.custom.AuthenticationFailureException;
 import com.toledo.minhasfinancas.exception.custom.BusinessAuthorizationException;
 import com.toledo.minhasfinancas.exception.custom.BusinessRuleException;
+import com.toledo.minhasfinancas.exception.custom.UserNotFoundException;
 import com.toledo.minhasfinancas.port.inbound.UserServicePort;
 import com.toledo.minhasfinancas.repository.UserRepository;
 

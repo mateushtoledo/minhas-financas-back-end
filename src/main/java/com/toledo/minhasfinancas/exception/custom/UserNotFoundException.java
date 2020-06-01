@@ -1,4 +1,4 @@
-package com.toledo.minhasfinancas.exception;
+package com.toledo.minhasfinancas.exception.custom;
 
 public class UserNotFoundException extends RuntimeException {
 	private static final long serialVersionUID = 8155790840745528553L;

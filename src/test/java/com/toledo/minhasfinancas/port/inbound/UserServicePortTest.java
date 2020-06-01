@@ -26,10 +26,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.toledo.minhasfinancas.core.UserService;
 import com.toledo.minhasfinancas.domain.User;
-import com.toledo.minhasfinancas.exception.UserNotFoundException;
 import com.toledo.minhasfinancas.exception.custom.AuthenticationFailureException;
 import com.toledo.minhasfinancas.exception.custom.BusinessAuthorizationException;
 import com.toledo.minhasfinancas.exception.custom.BusinessRuleException;
+import com.toledo.minhasfinancas.exception.custom.UserNotFoundException;
 import com.toledo.minhasfinancas.repository.UserRepository;
 
 @SpringBootTest
