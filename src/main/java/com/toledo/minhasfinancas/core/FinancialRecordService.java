@@ -1,15 +1,21 @@
 package com.toledo.minhasfinancas.core;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -62,10 +68,25 @@ public class FinancialRecordService implements FinancialRecordServicePort {
 		// persist changes
 		return repository.save(record);
 	}
+	
+	@Override
+	public FinancialRecord findById(User u, Long recordId) {
+		Optional<FinancialRecord> found = repository.findById(recordId);
+		return validateFinancialRecord(found, u, "visualizar");
+	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<FinancialRecord> find(User u, String description, Integer year, Integer month, FinancialRecordType type) {
+	public Page<FinancialRecord> find(
+		@Min(value = 1, message = "O índice da página deve começar em 1.") int pageIndex,
+		@Min(value = 1, message = "As páginas devem ter no mínimo 1 registro.") @Max(value = 100, message = "As páginas devem ter no máximo 100 registros.") int pageSize,
+		User u,
+		String description,
+		Integer year,
+		Integer month,
+		FinancialRecordType type
+	) {
+		// Criar filtros
 		FinancialRecord filters = new FinancialRecord(null, description, month, year, null, type, null, u, null);
 		Example<FinancialRecord> ex = Example.of(filters,
 			ExampleMatcher.matching()
@@ -73,7 +94,11 @@ public class FinancialRecordService implements FinancialRecordServicePort {
 			.withStringMatcher(StringMatcher.CONTAINING)
 		);
 		
-		return repository.findAll(ex);
+		// Criar paginação
+		Pageable pagination = PageRequest.of(pageIndex-1, pageSize, Sort.by(Direction.DESC, "year", "month"));
+		
+		// Pesquisar filtrando e paginando
+		return repository.findAll(ex, pagination);
 	}
 
 	@Override
@@ -102,6 +127,12 @@ public class FinancialRecordService implements FinancialRecordServicePort {
 		
 		// Delete permanently
 		repository.deleteById(recordId);
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public Float getSumByUserAndType(User u, FinancialRecordType type) {
+		return repository.getSumByUserAndStatus(u.getId(), type);
 	}
 	
 	private FinancialRecord validateFinancialRecord(Optional<FinancialRecord> found, User requester, String operationKeyword) {

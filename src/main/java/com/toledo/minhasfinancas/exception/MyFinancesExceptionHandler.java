@@ -1,6 +1,10 @@
 package com.toledo.minhasfinancas.exception;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +15,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import com.toledo.minhasfinancas.exception.custom.BusinessAuthorizationException;
 import com.toledo.minhasfinancas.exception.custom.BusinessRuleException;
+import com.toledo.minhasfinancas.exception.custom.FinancialRecordNotFoundException;
 import com.toledo.minhasfinancas.exception.custom.UserNotFoundException;
 
 @ControllerAdvice
@@ -33,6 +38,14 @@ public class MyFinancesExceptionHandler {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
 	
+	@ExceptionHandler(ConstraintViolationException.class)
+	public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+		List<Error> validationErrors = ex.getConstraintViolations().stream()
+			.map(err -> new Error(err.getMessage()))
+			.collect(Collectors.toList());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(validationErrors));
+	}
+	
 	@ExceptionHandler(BusinessRuleException.class)
 	public ResponseEntity<ErrorResponse> handleBusinessRuleException(BusinessRuleException ex, HttpServletRequest request) {
 		ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
@@ -45,8 +58,8 @@ public class MyFinancesExceptionHandler {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
 	}
 	
-	@ExceptionHandler(UserNotFoundException.class)
-	public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException ex, HttpServletRequest request) {
+	@ExceptionHandler({UserNotFoundException.class, FinancialRecordNotFoundException.class})
+	public ResponseEntity<ErrorResponse> handleUserNotFoundException(RuntimeException ex, HttpServletRequest request) {
 		ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 	}

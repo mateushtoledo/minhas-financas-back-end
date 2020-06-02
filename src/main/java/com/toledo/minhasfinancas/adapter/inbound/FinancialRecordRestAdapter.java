@@ -1,9 +1,8 @@
 package com.toledo.minhasfinancas.adapter.inbound;
 
 import java.net.URI;
-import java.util.List;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +20,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.toledo.minhasfinancas.domain.FinancialRecord;
 import com.toledo.minhasfinancas.domain.User;
 import com.toledo.minhasfinancas.domain.enums.FinancialRecordType;
+import com.toledo.minhasfinancas.dto.FinancialExtractDTO;
 import com.toledo.minhasfinancas.dto.FinancialRecordDTO;
 import com.toledo.minhasfinancas.dto.FinancialRecordStatusDTO;
+import com.toledo.minhasfinancas.dto.PageDTO;
 import com.toledo.minhasfinancas.port.inbound.FinancialRecordServicePort;
 import com.toledo.minhasfinancas.port.inbound.UserServicePort;
 import com.toledo.minhasfinancas.security.JwtUtil;
@@ -54,16 +55,28 @@ public class FinancialRecordRestAdapter {
 	}
 	
 	@GetMapping
-	public ResponseEntity<List<FinancialRecordDTO>> findFinancialRecords(
+	public ResponseEntity<PageDTO<FinancialRecordDTO>> findFinancialRecords(
+		@RequestParam(name = "pageIndex", required = false, defaultValue = "1") int pageIndex,
+		@RequestParam(name = "pageSize", required = false, defaultValue = "24") int pageSize,
 		@RequestParam(name = "description", required = false) String description,
 		@RequestParam(name = "month", required = false) Integer month,
 		@RequestParam(name = "year", required = false) Integer year,
 		@RequestParam(name = "type", required = false) FinancialRecordType type,
 		@RequestHeader("authorization") String authorization
 	) {
-		List<FinancialRecord> records = service.find(getUser(authorization), description, year, month, type);
-		List<FinancialRecordDTO> dtos = records.stream().map(record ->  new FinancialRecordDTO(record)).collect(Collectors.toList());
-		return ResponseEntity.ok(dtos);
+		Page<FinancialRecord> pageOfRecords = service.find(pageIndex, pageSize, getUser(authorization), description, year, month, type);
+		Page<FinancialRecordDTO> pageOfDtos = pageOfRecords.map(record ->  new FinancialRecordDTO(record));
+		return ResponseEntity.ok(new PageDTO<>(pageOfDtos));
+	}
+	
+	@GetMapping("/{id}")
+	public ResponseEntity<FinancialRecordDTO> findById(
+		@PathVariable("id") Long recordId,
+		@RequestHeader("authorization") String authorization
+	) {
+		FinancialRecord record = service.findById(getUser(authorization), recordId);
+		FinancialRecordDTO dto = new FinancialRecordDTO(record);
+		return ResponseEntity.ok(dto);
 	}
 	
 	@PutMapping("/{id}")
@@ -93,6 +106,17 @@ public class FinancialRecordRestAdapter {
 	) {
 		service.delete(getUser(authorization), recordId);
 		return ResponseEntity.noContent().build();
+	}
+	
+	@GetMapping("/extracts")
+	public ResponseEntity<FinancialExtractDTO> getFinancialExtract(
+		@RequestHeader("authorization") String authorization
+	) {
+		User requester = getUser(authorization);
+		Float incomes = service.getSumByUserAndType(requester, FinancialRecordType.INCOME);
+		Float expenses = service.getSumByUserAndType(requester, FinancialRecordType.EXPENSE);
+		
+		return ResponseEntity.ok(new FinancialExtractDTO(incomes, expenses));
 	}
 	
 	private User getUser(String authorizationHeader) {
