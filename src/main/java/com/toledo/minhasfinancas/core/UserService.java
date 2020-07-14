@@ -3,10 +3,13 @@ package com.toledo.minhasfinancas.core;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import com.toledo.minhasfinancas.domain.User;
 import com.toledo.minhasfinancas.exception.custom.AuthenticationFailureException;
@@ -17,6 +20,7 @@ import com.toledo.minhasfinancas.port.inbound.UserServicePort;
 import com.toledo.minhasfinancas.repository.UserRepository;
 
 @Service
+@Validated
 public class UserService implements UserServicePort {
 	private UserRepository repository;
 	private BCryptPasswordEncoder passwordEncoder;
@@ -44,7 +48,7 @@ public class UserService implements UserServicePort {
 
 	@Override
 	@Transactional
-	public User register(User toSave) {
+	public User register(@Valid User toSave) {
 		validateEmail(toSave.getEmail());
 		toSave.setPassword(passwordEncoder.encode(toSave.getPassword()));
 		toSave.setRegisterDate(LocalDate.now());

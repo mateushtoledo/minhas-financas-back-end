@@ -16,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -24,6 +25,7 @@ import com.toledo.minhasfinancas.security.HttpUnauthorizedEntryPoint;
 import com.toledo.minhasfinancas.security.JwtAuthenticationFilter;
 import com.toledo.minhasfinancas.security.JwtAuthorizationFilter;
 import com.toledo.minhasfinancas.security.JwtUtil;
+import com.toledo.minhasfinancas.security.UnsuccessfullAuthenticationEntryPoint;
 
 @Configuration
 @EnableWebSecurity
@@ -62,8 +64,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		// 'CorsConfigurationSource' method)
 		http.cors().and().csrf().disable();
 		
-		// Return 401 status code when the Authorization token is missing
-		http.exceptionHandling().authenticationEntryPoint(getAuthenticationEntryPoint());
+		// Return 401 status code in authentication failures
+		http.exceptionHandling()/**/
+			.defaultAuthenticationEntryPointFor(getAuthenticationFailedEntryPoint(), new AntPathRequestMatcher("/auth/authentications/**"))
+			.defaultAuthenticationEntryPointFor(getTokenInvalidEntryPoint(), new AntPathRequestMatcher("/users/**"))
+			.defaultAuthenticationEntryPointFor(getTokenInvalidEntryPoint(), new AntPathRequestMatcher("/financial-records/**"))
+			.defaultAuthenticationEntryPointFor(getTokenInvalidEntryPoint(), new AntPathRequestMatcher("/auth/refreshs/**"));
 		
 		// Allow authenticated access to these urls
 		http.authorizeRequests()
@@ -94,13 +100,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
+		
+		CorsConfiguration corsConfig = new CorsConfiguration().applyPermitDefaultValues();
+		corsConfig.addAllowedMethod(HttpMethod.PUT);
+		corsConfig.addAllowedMethod(HttpMethod.PATCH);
+		corsConfig.addAllowedMethod(HttpMethod.DELETE);
+		
+		source.registerCorsConfiguration("/**", corsConfig);
 		return source;
 	}
 
 	@Bean
-	public HttpUnauthorizedEntryPoint getAuthenticationEntryPoint() {
+	public HttpUnauthorizedEntryPoint getTokenInvalidEntryPoint() {
 		return new HttpUnauthorizedEntryPoint();
+	}
+	
+	@Bean
+	public UnsuccessfullAuthenticationEntryPoint getAuthenticationFailedEntryPoint() {
+		return new UnsuccessfullAuthenticationEntryPoint();
 	}
 	
 	/**

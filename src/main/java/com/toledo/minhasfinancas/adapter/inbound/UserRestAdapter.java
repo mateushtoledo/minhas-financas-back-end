@@ -4,7 +4,6 @@ import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -38,12 +37,12 @@ public class UserRestAdapter {
 		return ResponseEntity.created(userLocation).build();
 	}
 	
-	@GetMapping("/{id}")
-	public ResponseEntity<UserDTO> findUser(@PathVariable(name = "id") Long id, @RequestHeader("authorization") String authorization) {
+	@GetMapping("/my")
+	public ResponseEntity<UserDTO> findUser(@RequestHeader("authorization") String authorization) {
 		String jwt = authorization.substring(7);
 		String userEmail = jwtUtils.getUserEmail(jwt);
 		
-		User found = service.findById(id, userEmail);
+		User found = service.findByEmail(userEmail);
 		
 		UserDTO dto = new UserDTO(found);
 		return ResponseEntity.ok(dto);

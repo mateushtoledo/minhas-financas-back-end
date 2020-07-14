@@ -1,6 +1,8 @@
 package com.toledo.minhasfinancas.core;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -95,7 +98,11 @@ public class FinancialRecordService implements FinancialRecordServicePort {
 		);
 		
 		// Criar paginação
-		Pageable pagination = PageRequest.of(pageIndex-1, pageSize, Sort.by(Direction.DESC, "year", "month"));
+		List<Order> sortOrder = new ArrayList<>();
+		sortOrder.add(new Order(Direction.DESC, "year"));
+		sortOrder.add(new Order(Direction.DESC, "month"));
+		sortOrder.add(new Order(Direction.ASC, "description"));
+		Pageable pagination = PageRequest.of(pageIndex-1, pageSize, Sort.by(sortOrder));
 		
 		// Pesquisar filtrando e paginando
 		return repository.findAll(ex, pagination);
@@ -132,7 +139,7 @@ public class FinancialRecordService implements FinancialRecordServicePort {
 	@Override
 	@Transactional(readOnly = true)
 	public Float getSumByUserAndType(User u, FinancialRecordType type) {
-		return repository.getSumByUserAndStatus(u.getId(), type);
+		return repository.getSumByUserAndType(u.getId(), type);
 	}
 	
 	private FinancialRecord validateFinancialRecord(Optional<FinancialRecord> found, User requester, String operationKeyword) {

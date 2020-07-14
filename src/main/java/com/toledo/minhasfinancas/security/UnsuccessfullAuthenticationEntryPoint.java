@@ -13,25 +13,18 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.toledo.minhasfinancas.exception.ErrorResponse;
 
-public class HttpUnauthorizedEntryPoint implements AuthenticationEntryPoint {
+public class UnsuccessfullAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-		String errorMessage = "";
-		
-		String authHeader = request.getHeader("authorization");
-		if (authHeader == null || authHeader.trim().isEmpty()) {
-			errorMessage = "Você omitiu o token de autenticação!";
-		} else {
-			errorMessage = "Seu token de autenticação foi recusado. Por favor, tente novamente!";
-		}
-		
 		ObjectMapper mapper = new ObjectMapper();
-		ErrorResponse errorResponse = new ErrorResponse(errorMessage);
-		
+		ErrorResponse errorResponse = new ErrorResponse("Credenciais de acesso inválidas. Por favor, verifique os dados informados, e tente novamente.");
+
 		// Define response status and body
 		response.getWriter().write(mapper.writeValueAsString(errorResponse));
 		response.addHeader("content-type", "application/json");
 		response.setStatus(HttpStatus.UNAUTHORIZED.value());
+
 	}
+
 }

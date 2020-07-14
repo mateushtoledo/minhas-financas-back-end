@@ -3,7 +3,6 @@ package com.toledo.minhasfinancas.domain;
 import java.io.Serializable;
 import java.time.LocalDate;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -71,7 +70,7 @@ public class FinancialRecord implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private FinancialRecordStatus status = FinancialRecordStatus.PENDANT;
 	
-	@ManyToOne(optional = false, cascade = CascadeType.REMOVE)
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "fk_user_id", columnDefinition = "BIGINT")
 	private User user;
 	

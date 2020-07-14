@@ -42,7 +42,7 @@ public class FinancialRecordDTO implements Serializable {
 			.value(value)
 			.month(month)
 			.year(year)
-			.user(User.builder().id(id).build())
+			.user(User.builder().id(userId).build())
 			.build();
 		
 		if (type != null && !type.trim().isEmpty()) {

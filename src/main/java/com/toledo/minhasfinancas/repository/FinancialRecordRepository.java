@@ -14,6 +14,6 @@ import com.toledo.minhasfinancas.domain.enums.FinancialRecordType;
 public interface FinancialRecordRepository extends JpaRepository<FinancialRecord, Long> {
 	
 	@Query("SELECT SUM(fr.value) FROM FinancialRecord fr RIGHT JOIN User u ON fr.user.id = u.id WHERE u.id = :userId AND fr.type = :type AND fr.status = 'ACCEPTED'")
-	public Float getSumByUserAndStatus(@Param("userId") Long userId, @Param("type") FinancialRecordType type);
+	public Float getSumByUserAndType(@Param("userId") Long userId, @Param("type") FinancialRecordType type);
 	
 }
